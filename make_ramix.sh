@@ -22,6 +22,13 @@ build_base() {
 	export CXXFLAGS="$CFLAGS"
 
 	cd $SRC
+	wget https://github.com/ramixlinux/ramix-skeleton/archive/0.1.tar.gz
+	tar -xf ramix-skeleton-0.1.tar.gz
+	cd ramix-skeleton-0.1
+	chmod +x install.sh
+	ROOT=$DESTDIR ./install.sh
+
+	cd $SRC
 	wget https://cdn.kernel.org/pub/linux/kernel/v4.x/linux-4.9.38.tar.xz
 	tar -xf linux-4.9.38.tar.xz
 	cd linux-4.9.38
