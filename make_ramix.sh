@@ -466,7 +466,7 @@ build_base() {
 	make DESTDIR=$DESTDIR install
 
 	cd $SRC
-	wget https://www.nano-editor.org/dist/v2.8/nano-2.8.5.tar.xz
+	wget https://www.nano-editor.org/dist/v2.8/nano-2.8.6.tar.xz
 	tar -xf nano-2.8.5.tar.xz
 	cd nano-2.8.5
 	./configure \
