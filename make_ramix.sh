@@ -294,6 +294,16 @@ build_base() {
 		CFLAGS="$FLAGS"
 	make -j $NUM_JOBS
 	make DESTDIR=$DESTDIR install
+	
+	cd $SRC
+	wget http://ftp.gnu.org/gnu/gzip/gzip-1.8.tar.xz
+	tar -xf gzip-1.8.tar.xz
+	cd gzip-1.8
+	./configure \
+		$XCONFIGURE \
+		CFLAGS="$FLAGS"
+	make -j $NUM_JOBS
+	make DESTDIR=$DESTDIR install
 
 	cd $SRC
 	wget https://www.kernel.org/pub/linux/utils/net/iproute2/iproute2-4.12.0.tar.xz
