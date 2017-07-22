@@ -23,7 +23,7 @@ build_base() {
 
 	cd $SRC
 	wget https://github.com/ramixlinux/ramix-skeleton/archive/0.1.tar.gz
-	tar -xf ramix-skeleton-0.1.tar.gz
+	tar -xf 0.1.tar.gz
 	cd ramix-skeleton-0.1
 	chmod +x install.sh
 	ROOT=$DESTDIR ./install.sh
