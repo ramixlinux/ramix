@@ -17,11 +17,6 @@ mkdir -p $DESTDIR $ROOTCD $READY $SRC
 
 FLAGS="-fPIC -fdata-sections -ffunction-sections -Os -g0 -s -fno-unwind-tables -fno-asynchronous-unwind-tables -Wa,--noexecstack -fno-stack-protector -fomit-frame-pointer -U_FORTIFY_SOURCE"
 
-create_tarballs() {
-	cd $STUFF/skeleton
-	tar -cvf $SRC/skeleton-alpha1.tar .
-}
-
 build_base() {
 	export CFLAGS="$FLAGS"
 	export CXXFLAGS="$CFLAGS"
@@ -48,7 +43,8 @@ build_base() {
 	sed -i "s/.*CONFIG_STATIC.*/CONFIG_STATIC=y/" .config
 	make CONFIG_PREFIX=$DESTDIR install -j $NUM_JOBS
 	rm -rf $DESTDIR/linuxrc
-	rm -rf $DESTDIR/sbin/init
+	cd $DESTDIR
+	ln -s bin/busybox init
 
 	cd $SRC
 	wget http://www.musl-libc.org/releases/musl-1.1.16.tar.gz
@@ -702,15 +698,6 @@ build_base() {
 		--shared
 	make
 	make DESTDIR=$DESTDIR install
-
-	cd $SRC
-	wget http://download.savannah.gnu.org/releases/sysvinit/sysvinit-2.88dsf.tar.bz2
-	tar -xf sysvinit-2.88dsf.tar.bz2
-	cd sysvinit-2.88dsf
-	make
-	make ROOT=$DESTDIR install
-	cd $DESTDIR
-	ln -s sbin/init init
 }
 
 build_image() {
