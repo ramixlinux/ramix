@@ -21,12 +21,19 @@ build_base() {
 	export CFLAGS="$FLAGS"
 	export CXXFLAGS="$CFLAGS"
 
-	cd $SRC
-	wget https://github.com/ramixlinux/ramix-skeleton/archive/0.1.tar.gz
-	tar -xf 0.1.tar.gz
-	cd ramix-skeleton-0.1
-	chmod +x install.sh
-	ROOT=$DESTDIR ./install.sh
+	cd $DESTDIR
+	mkdir -p boot bin dev etc home lib mnt proc root sbin sys tmp usr var
+	mkdir -p var/cache var/local var/opt var/log/old var/lib var/empty
+	mkdir -p usr/bin usr/include usr/lib usr/sbin usr/share usr/share/doc usr/src
+	for d in $(seq 8); do
+			install -d -m755 usr/share/man/man${d}
+	done
+	cp -a $STUFF/skeleton/etc/* $DESTDIR/etc
+	chmod 600 $DESTDIR/etc/busybox.conf
+	chmod 640 $DESTDIR/etc/shadow
+	chmod 640 $DESTDIR/etc/gshadow
+	chmod +x $DESTDIR/etc/rc.d/rc
+	chmod +x $DESTDIR/etc/rc.d/rc.local
 
 	cd $SRC
 	wget https://cdn.kernel.org/pub/linux/kernel/v4.x/linux-4.9.38.tar.xz
