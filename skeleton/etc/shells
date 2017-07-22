@@ -1,0 +1,5 @@
+# /etc/shells: Valid login shells.
+/bin/bash
+/bin/ash
+/bin/sh
+/bin/hush
