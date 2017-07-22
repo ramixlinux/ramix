@@ -721,7 +721,7 @@ mkdir -p $ROOTCD/boot/isolinux
 cp $SRC/linux-4.9.38/arch/x86/boot/bzImage $ROOTCD/bzImage
 
 cd $DESTDIR
-find | ( set -x; cpio -o -H newc | xz -9 --format=lzma --verbose --verbose ) > $ROOTCD/rootfs.gz
+find | ( set -x; cpio -o -H newc | xz -9 --format=lzma --verbose --verbose ) > $ROOTCD/initrd.img
 cd ..
 
 cd $SRC
@@ -736,7 +736,7 @@ cat > $ROOTCD/boot/isolinux/isolinux.cfg << "EOF"
 default boot
 label boot
     kernel /bzImage
-    append initrd=/rootfs.gz rw root=/dev/null vga=normal
+    append initrd=/initrd.img rw root=/dev/null vga=normal
 implicit 0
 prompt 1
 timeout 80
@@ -746,7 +746,7 @@ mkdir -p $ROOTCD/efi/boot
 cat > $ROOTCD/efi/boot/startup.nsh << "EOF"
 echo -off
 echo RAMIX is loading...
-\\bzImage initrd=\\rootfs.gz
+\\bzImage initrd=\\initrd.img
 EOF
 
 xorriso \
