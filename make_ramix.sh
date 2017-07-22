@@ -28,7 +28,7 @@ build_base() {
 	for d in $(seq 8); do
 			install -d -m755 usr/share/man/man${d}
 	done
-	cp -a $STUFF/skeleton/etc/* $DESTDIR/etc
+	cp -a $PWD/skeleton/etc/* $DESTDIR/etc
 	chmod 600 $DESTDIR/etc/busybox.conf
 	chmod 640 $DESTDIR/etc/shadow
 	chmod 640 $DESTDIR/etc/gshadow
