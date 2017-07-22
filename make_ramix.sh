@@ -128,7 +128,7 @@ build_base() {
 	cd cpio-2.12
 	./configure \
 		$XCONFIGURE \
-    --enable-mt \
+		--enable-mt \
 		CFLAGS="$FLAGS"
 	make -j $NUM_JOBS
 	make DESTDIR=$DESTDIR install
@@ -141,7 +141,7 @@ build_base() {
 		$XCONFIGURE \
 		--enable-threaded-resolver \
 		--disable-static \
-    --enable-ipv6 \
+		--enable-ipv6 \
 		CFLAGS="$FLAGS"
 	make -j $NUM_JOBS
 	make DESTDIR=$DESTDIR install
@@ -152,10 +152,10 @@ build_base() {
 	cd db-6.2.32
 	./configure \
 		$XCONFIGURE \
-    --enable-compat185 \
-    --enable-dbm \
-    --disable-static \
-    --enable-cxx \
+		--enable-compat185 \
+		--enable-dbm \
+		--disable-static \
+		--enable-cxx \
 		CFLAGS="$FLAGS"
 	make -j $NUM_JOBS
 	make DESTDIR=$DESTDIR install
@@ -336,7 +336,7 @@ build_base() {
 	cd libevent-2.1.8-stable
 	./configure \
 		$XCONFIGURE \
-    --disable-static \
+		--disable-static \
 		CFLAGS="$FLAGS"
 	make -j $NUM_JOBS
 	make DESTDIR=$DESTDIR install
