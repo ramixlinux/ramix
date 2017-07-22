@@ -80,6 +80,26 @@ build_base() {
 	make DESTDIR=$DESTDIR install
 
 	cd $SRC
+	wget ftp://ftp.alsa-project.org/pub/lib/alsa-lib-1.1.4.1.tar.bz2
+	tar -xf alsa-lib-1.1.4.1.tar.bz2
+	cd alsa-lib-1.1.4.1
+	./configure \
+		$XCONFIGURE \
+		CFLAGS="$FLAGS"
+	make -j $NUM_JOBS
+	make DESTDIR=$DESTDIR install
+	
+	cd $SRC
+	wget ftp://ftp.alsa-project.org/pub/utils/alsa-utils-1.1.4.tar.bz2
+	tar -xf alsa-utils-1.1.4.tar.bz2
+	cd alsa-utils-1.1.4
+	./configure \
+		$XCONFIGURE \
+		CFLAGS="$FLAGS"
+	make -j $NUM_JOBS
+	make DESTDIR=$DESTDIR install
+
+	cd $SRC
 	wget http://download.savannah.gnu.org/releases/attr/attr-2.4.47.src.tar.gz
 	tar -xf attr-2.4.47.src.tar.gz
 	cd attr-2.4.47
@@ -122,7 +142,7 @@ build_base() {
 	make -f Makefile-libbz2_so -j $NUM_JOBS
 	make -f Makefile-libbz2_so PREFIX=$DESTDIR/usr install
   
-  cd $SRC
+	cd $SRC
 	wget http://ftp.gnu.org/gnu/cpio/cpio-2.12.tar.bz2
 	tar -xf cpio-2.12.tar.bz2
 	cd cpio-2.12
