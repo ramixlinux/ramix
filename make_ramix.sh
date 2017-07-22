@@ -21,12 +21,11 @@ build_base() {
 	export CFLAGS="$FLAGS"
 	export CXXFLAGS="$CFLAGS"
 
-	cd $DESTDIR
-	mkdir -p boot bin dev etc home lib mnt proc root sbin sys tmp usr var
-	mkdir -p var/cache var/local var/opt var/log/old var/lib var/empty
-	mkdir -p usr/bin usr/include usr/lib usr/sbin usr/share usr/share/doc usr/src
+	mkdir -p $DESTDIR/boot $DESTDIR/bin $DESTDIR/dev $DESTDIR/etc $DESTDIR/home $DESTDIR/lib $DESTDIR/mnt $DESTDIR/proc $DESTDIR/root $DESTDIR/sbin $DESTDIR/sys $DESTDIR/tmp $DESTDIR/usr var
+	mkdir -p $DESTDIR/var/cache $DESTDIR/var/local $DESTDIR/var/opt $DESTDIR/var/log/old $DESTDIR/var/lib $DESTDIR/var/empty
+	mkdir -p $DESTDIR/usr/bin $DESTDIR/usr/include $DESTDIR/usr/lib $DESTDIR/usr/sbin $DESTDIR/usr/share $DESTDIR/usr/share/doc $DESTDIR/usr/src
 	for d in $(seq 8); do
-			install -d -m755 usr/share/man/man${d}
+			install -d -m755 $DESTDIR/usr/share/man/man${d}
 	done
 	cp -a $PWD/skeleton/etc/* $DESTDIR/etc
 	chmod 600 $DESTDIR/etc/busybox.conf
