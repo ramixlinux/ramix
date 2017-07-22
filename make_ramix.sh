@@ -21,7 +21,7 @@ build_base() {
 	export CFLAGS="$FLAGS"
 	export CXXFLAGS="$CFLAGS"
 
-	mkdir -p $DESTDIR/boot $DESTDIR/bin $DESTDIR/dev $DESTDIR/etc $DESTDIR/home $DESTDIR/lib $DESTDIR/mnt $DESTDIR/proc $DESTDIR/root $DESTDIR/sbin $DESTDIR/sys $DESTDIR/tmp $DESTDIR/usr var
+	mkdir -p $DESTDIR/boot $DESTDIR/bin $DESTDIR/dev $DESTDIR/etc $DESTDIR/home $DESTDIR/lib mnt $DESTDIR/proc $DESTDIR/root $DESTDIR/sbin $DESTDIR/sys $DESTDIR/tmp $DESTDIR/usr $DESTDIR/var
 	mkdir -p $DESTDIR/var/cache $DESTDIR/var/local $DESTDIR/var/opt $DESTDIR/var/log/old $DESTDIR/var/lib $DESTDIR/var/empty
 	mkdir -p $DESTDIR/usr/bin $DESTDIR/usr/include $DESTDIR/usr/lib $DESTDIR/usr/sbin $DESTDIR/usr/share $DESTDIR/usr/share/doc $DESTDIR/usr/src
 	for d in $(seq 8); do
