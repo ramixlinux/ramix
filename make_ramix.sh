@@ -15,6 +15,8 @@ SRC=$PWD/src
 rm -rf $DESTDIR $ROOTCD $READY $SRC
 mkdir -p $DESTDIR $ROOTCD $READY $SRC
 
+FLAGS="-fPIC -fdata-sections -ffunction-sections -Os -g0 -s -fno-unwind-tables -fno-asynchronous-unwind-tables -Wa,--noexecstack -fno-stack-protector -fomit-frame-pointer -U_FORTIFY_SOURCE"
+
 create_tarballs() {
 	cd $STUFF/skeleton
 	tar -cvf $SRC/skeleton-alpha1.tar .
