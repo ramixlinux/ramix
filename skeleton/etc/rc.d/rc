@@ -1,0 +1,243 @@
+#!/bin/sh
+# This file is executed on boot to initialize the system and can also be run by
+# the user to start/stop daemons.
+
+# User-definable start/stop/restart/poll functions which fall back to defaults
+custom_restart() { default_restart "$@"; }
+custom_start() { default_start "$@"; }
+custom_stop() { default_stop "$@"; }
+custom_poll() { default_poll "$@"; }
+
+. /etc/rc.conf
+
+on_boot() {
+PATH=/usr/bin:/bin:/usr/sbin:/sbin
+
+umask 022
+
+echo -ne "RAMIX is booting... Be patient! ;)"
+
+mount -v -n -o nosuid,noexec,nodev -t proc proc /proc
+mount -v -n -o nosuid,noexec,nodev -t sysfs sysfs /sys
+mount -v -n -t devtmpfs devtmpfs /dev
+mkdir -p /dev/pts /dev/shm
+mount -v -n -o mode=0620,gid=5 -t devpts devpts /dev/pts
+mount -v -n -o defaults -t tmpfs none /dev/shm
+mount -v -n -o defaults -t tmpfs tmpfs /run
+
+ln -s /proc/mounts /etc/mtab
+
+grep -q " verbose" /proc/cmdline && dmesg -n 8 || dmesg -n 3
+
+for f in $(kmod static-nodes 2>/dev/null|awk '/Module/ {print $2}'); do
+	modprobe -q $f 2>/dev/null
+done
+modules-load -v | tr '\n' ' ' | sed 's:insmod [^ ]*/::g; s:\.ko\(\.gz\)\? ::g'
+
+if which udevd > /dev/null 2>&1 ; then
+  udevd --daemon
+  udevadm trigger --type=subsystems --action=add
+  udevadm trigger --type=devices --action=add
+  udevadm trigger --type=devices --action=change
+  udevadm settle
+else
+	echo /sbin/mdev > /proc/sys/kernel/hotplug
+	mdev -s
+fi
+
+if type lvm > /dev/null 2>&1
+then
+    vgscan --mknodes --ignorelockingfailure && \
+     vgchange --ignorelockingfailure -a y
+fi
+
+hwclock -u -s
+
+hostname $HOSTNAME
+
+mount -v -n -o remount,ro /
+fsck -A -T -C -p
+mount -v -n -o remount,rw /
+
+swapon -a
+mount -a
+
+[ -f /etc/random-seed ] && cat /etc/random-seed >/dev/urandom
+dd if=/dev/urandom of=/etc/random-seed count=1 bs=512 2>/dev/null
+
+for dmn in $ENABLED; do
+    if [ "$(echo "$dmn" | awk '{ s=substr($0, 1, 1); print s; }')" = '@' ]; then
+        custom_start "$(echo "$dmn" | awk '{ s=substr($0, 2); print s; }')" &
+    else
+        custom_start "$dmn"
+    fi
+done
+    
+if [ -x /etc/rc.d/rc.local ]; then
+    /etc/rc.d/rc.local
+fi
+}
+
+on_shutdown() {
+export PATH=/usr/bin:/bin:/usr/sbin:/sbin
+
+umask 022
+
+hwclock -u -w
+
+dd if=/dev/urandom of=/etc/random-seed count=1 bs=512 2>/dev/null
+
+custom_stop all
+
+killall udevd
+
+env PATH=/usr/bin:/bin kill -s TERM -1
+
+sync
+
+swapoff -v -a
+
+umount -v -a -r
+
+mount -n -o remount,ro /
+
+rm -rf /etc/mtab
+
+echo -ne "RAMIX is shutdowning... See you next time! ;)"
+}
+
+default_start() {
+    echo_color 2 starting "$1"...
+    case "$1" in
+    all)
+        for dmn in $DAEMONS $ENABLED; do
+            custom_poll "${dmn##@}" || custom_start "${dmn##@}"
+        done;;
+    alsa)
+        alsactl restore;;
+    bitlbee)
+        su -s /bin/sh -c 'bitlbee -F' bitlbee;;
+    dbus)
+        mkdir -p /run/dbus &&
+            dbus-uuidgen --ensure &&
+            dbus-daemon --system;;
+    iptables)
+        iptables-restore < /etc/iptables/iptables.rules;;
+    sshd)
+        /usr/bin/sshd;;
+    privoxy)
+        privoxy --user privoxy.privoxy /etc/privoxy/config;;
+    polipo)
+        su -c 'polipo daemonise=true logFile="/var/log/polipo.log"' -s /bin/sh - nobody;;
+    dhcpcd)
+        if ip link | grep -Fq $NETWORK_INTERFACE; then :; else
+            echo_color 3 "waiting for $NETWORK_INTERFACE to settle..."
+            for i in $(seq 100); do
+                ip link | grep -Fq $NETWORK_INTERFACE && break
+                sleep 1
+            done
+        fi
+        dhcpcd -nqb;;
+    vsftpd)
+        vsftpd &;;
+    lighttpd)
+        lighttpd -f /etc/lighttpd/lighttpd.conf;;
+    ntpd)
+        ntpd -g -u ntp;;
+    wpa_supplicant)
+        wpa_supplicant -Dwext -B -i"$WIFI_INTERFACE" -c/etc/wpa_supplicant.conf;;
+    icecast)
+        icecast -b -c /etc/icecast.xml;;
+    *)
+        # fallback: start the command
+        "$1";;
+    esac
+}
+
+default_stop() {
+    echo_color 1 stopping "$1"...
+    case "$1" in
+    all)
+        for dmn in $DAEMONS $ENABLED; do
+            custom_poll "${dmn##@}" && custom_stop "${dmn##@}"
+        done;;
+    alsa)
+        alsactl store;;
+    dbus)
+        killall dbus-launch
+        killall dbus-daemon
+        rm /run/dbus/pid;;
+    iptables)
+        for table in $(cat /proc/net/ip_tables_names); do
+            iptables-restore < /var/lib/iptables/empty-"$table".rules
+        done;;
+    *)
+        killall "$1";;
+    esac
+}
+
+default_restart() {
+    case "$1" in
+    sshd)
+        busybox setsid sh -c '"$0" stop "$@"; "$0" start "$@"' "$0" "$@";;
+    *)
+        custom_stop "$@"
+        custom_start "$@";;
+    esac
+}
+
+default_poll() {
+    case "$1" in
+    alsa)
+        return 0;;  # doesn't make much sense for this service
+    iptables)
+        iptables -L -n | grep -m 1 -q '^ACCEPT\|^REJECT';;
+    dbus)
+        test -e /run/dbus/pid;;
+    *)
+        pgrep "(^|/)$1\$" >/dev/null 2>&1;;
+    esac
+}
+
+echo_color() {
+  color="$1"
+  shift
+  printf "\033[1;3%sm%s\033[00m\n" "$color" "$*"
+}
+
+case "$1" in
+init)
+    on_boot;;
+shutdown)
+    on_shutdown
+    poweroff;;
+reboot)
+    on_shutdown
+    reboot;;
+start|stop|restart)
+    cmd="$1"
+    shift
+    for dmn in ${@:-$DAEMONS}; do
+        custom_"${cmd}" "$dmn"
+    done;;
+''|list)
+    # list all daemons and their status
+    for dmn in $DAEMONS; do
+        if custom_poll "$dmn" >/dev/null 2>&1; then
+            echo_color 2 [X] "$dmn"
+        else
+            echo_color 0 [ ] "$dmn"
+        fi
+    done;;
+*)
+    self=$(basename "$0")
+    echo "Usage: $self [--help] [--version] <action> [list of daemons]"
+    echo
+    echo "Actions:"
+    echo "   $self list               shows status of all daemons (default action)"
+    echo "   $self start [daemons]    starts daemons"
+    echo "   $self stop [daemons]     stops daemons"
+    echo "   $self restart [daemons]  restarts daemons";;
+esac
+
+exit 0
